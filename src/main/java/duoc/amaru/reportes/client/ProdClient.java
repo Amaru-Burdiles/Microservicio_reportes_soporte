@@ -35,4 +35,11 @@ public class ProdClient {
 
         return lista;
     }
+
+    // CONEXIÓN OBTENER PRODUCTO POR ID
+    public boolean existeProdcuto(Long idProd) {
+        // url especifica
+        String url = serviceUrl + idProd + "/conexion";
+        return restTemplate.getForObject(url, boolean.class);
+    }
 }

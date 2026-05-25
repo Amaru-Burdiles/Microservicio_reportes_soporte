@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.dto.ReviewDTO;
 import duoc.amaru.reportes.model.Review;
 import duoc.amaru.reportes.repository.ReviewRepo;
@@ -14,6 +15,9 @@ import duoc.amaru.reportes.repository.ReviewRepo;
 public class ReviewServicio {
     @Autowired
     private ReviewRepo reviewRepo;
+
+    @Autowired
+    private ProdClient prodClient;
 
     // MOSTRAR RESEÑAS
     public ResponseEntity<?> mostrarTodo() {
@@ -39,7 +43,8 @@ public class ReviewServicio {
         // TODO;
 
         // Validar producto id
-        // TODO;
+        if (!prodClient.existeProdcuto(prodId))
+            return ResponseEntity.badRequest().body("Producto no encontrado");
 
         if (reviewRepo.existsByIdCliente(userId) && reviewRepo.existsByIdProducto(prodId))
             return ResponseEntity.badRequest().body("Ya creaste una reseña para este producto");
