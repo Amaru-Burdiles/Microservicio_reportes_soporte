@@ -2,6 +2,7 @@ package duoc.amaru.reportes.model;
 
 import java.util.List;
 
+import duoc.amaru.reportes.dto.ProdDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

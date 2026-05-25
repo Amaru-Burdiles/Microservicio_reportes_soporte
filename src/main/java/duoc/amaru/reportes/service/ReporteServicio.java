@@ -7,20 +7,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import duoc.amaru.reportes.client.FacturaClient;
+import duoc.amaru.reportes.client.PedidoClient;
+import duoc.amaru.reportes.client.ProdClient;
+import duoc.amaru.reportes.dto.ProdDTO;
+import duoc.amaru.reportes.model.Reporte;
 import duoc.amaru.reportes.model.ReporteInventario;
 import duoc.amaru.reportes.model.ReporteVentas;
 import duoc.amaru.reportes.repository.ReporteRepo;
 
 @Service
 public class ReporteServicio {
-    @Autowired
+    @Autowired // Repo Reporte
     private ReporteRepo reporteRepo;
 
-    @Autowired
+    @Autowired // Client Factura
     private FacturaClient facturaClient;
 
-    @Autowired
+    @Autowired // Client Producto
     private ProdClient prodClient;
+
+    @Autowired // Client Pedido
+    private PedidoClient pedidoClient;
 
     
     
@@ -32,7 +40,7 @@ public class ReporteServicio {
         ventas.setGeneradoPor(userId);
         ventas.setFormato("JSON");
 
-        double suma = facturaClient.getFacturas();
+        double suma = facturaClient.getTotalFacturas();
         ventas.setTotalVentas(suma);
         
         int pedidos = pedidoClient.getPedidos();
@@ -43,7 +51,7 @@ public class ReporteServicio {
     }
     
     // GENERAR REPORTE INVENTARIO
-    public ResponseEntity<?> generarReporteInv(Long userId, int umbral) {
+    public ResponseEntity<?> generarReporteInv(Long userId, int umbral, Long invId) {
         ReporteInventario inv = new ReporteInventario();
         inv.setTipoReporte("Inventario");
         inv.setFechaGeneracion(LocalDateTime.now());
@@ -53,11 +61,24 @@ public class ReporteServicio {
         int totalProds = prodClient.getTotalProductos();
         inv.setTotalProductos(totalProds);
         
-        List<ProdDTO> stockBajo = prodClient.getProductosLowStock(umbral);
+        List<ProdDTO> stockBajo = prodClient.getProductosLowStock(umbral, invId);
         inv.setProdBajoStock(stockBajo);
         
         reporteRepo.save(inv);
         return ResponseEntity.ok("Reporte generado con Id #"+ inv.getIdReporte());
+    }
+
+    // OBTENER TODOS LOS REPORTES
+    public List<Reporte> mostrarTodos() {
+        return reporteRepo.findAll();
+    }
+
+    // OBTENER REPORTES POR TIPO
+    public ResponseEntity<?> reportesByTipo(String tipo) {
+        if (!tipo.equalsIgnoreCase("inventario") || !tipo.equalsIgnoreCase("ventas"))
+            return ResponseEntity.badRequest().body("Tipo de reporte desconocido");
+
+        return ResponseEntity.ok(reporteRepo.findByTipoReporte(tipo));
     }
     
     
