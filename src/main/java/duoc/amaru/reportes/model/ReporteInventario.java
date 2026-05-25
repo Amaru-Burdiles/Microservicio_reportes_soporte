@@ -21,6 +21,6 @@ public class ReporteInventario extends Reporte {
     private int totalProductos;
 
     @Column(name = "prod_id_stock_bajo")
-    private List<Long> prodBajoStock;
+    private List<ProdDTO> prodBajoStock;
     private String periodo;
 }
