@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import duoc.amaru.reportes.client.FacturaClient;
 import duoc.amaru.reportes.client.PedidoClient;
 import duoc.amaru.reportes.client.ProdClient;
+import duoc.amaru.reportes.client.SesionClient;
 import duoc.amaru.reportes.dto.ProdDTO;
 import duoc.amaru.reportes.model.Reporte;
 import duoc.amaru.reportes.model.ReporteInventario;
@@ -30,10 +31,16 @@ public class ReporteServicio {
     @Autowired // Client Pedido
     private PedidoClient pedidoClient;
 
-    
+    @Autowired
+    private SesionClient sesionClient;
     
     // GENERAR REPORTE VENTAS
     public ResponseEntity<?> generarReporteVenta(Long userId) {
+        // Validar usuario ejecutor
+        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
+        if (reply != null)
+            return reply;
+
         ReporteVentas ventas = new ReporteVentas();
         ventas.setTipoReporte("Ventas");
         ventas.setFechaGeneracion(LocalDateTime.now());
@@ -52,6 +59,11 @@ public class ReporteServicio {
     
     // GENERAR REPORTE INVENTARIO
     public ResponseEntity<?> generarReporteInv(Long userId, int umbral, Long invId) {
+        // Validar usuario ejecutor
+        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
+        if (reply != null)
+            return reply;
+
         ReporteInventario inv = new ReporteInventario();
         inv.setTipoReporte("Inventario");
         inv.setFechaGeneracion(LocalDateTime.now());
@@ -69,18 +81,30 @@ public class ReporteServicio {
     }
 
     // OBTENER TODOS LOS REPORTES
-    public List<Reporte> mostrarTodos() {
-        return reporteRepo.findAll();
+    public ResponseEntity<?> mostrarTodos(Long userId) {
+        // Validar usuario ejecutor
+        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
+        if (reply != null)
+            return reply;
+
+        List<Reporte> reportes = reporteRepo.findAll();
+        if (reportes.isEmpty())
+            return ResponseEntity.status(404).body("No se ha creado ningún reporte aún");
+
+        return ResponseEntity.ok(reportes);
     }
 
     // OBTENER REPORTES POR TIPO
-    public ResponseEntity<?> reportesByTipo(String tipo) {
+    public ResponseEntity<?> reportesByTipo(String tipo, Long userId) {
+        // Validar usuario ejecutor
+        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
+        if (reply != null)
+            return reply;
+
         if (!tipo.equalsIgnoreCase("inventario") || !tipo.equalsIgnoreCase("ventas"))
             return ResponseEntity.badRequest().body("Tipo de reporte desconocido");
 
         return ResponseEntity.ok(reporteRepo.findByTipoReporte(tipo));
     }
-    
-    
-    // TODO: Validar usuario ejecutor
+
 }

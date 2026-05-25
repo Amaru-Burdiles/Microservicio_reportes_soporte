@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import duoc.amaru.reportes.client.ProdClient;
+import duoc.amaru.reportes.client.SesionClient;
 import duoc.amaru.reportes.dto.ReviewDTO;
 import duoc.amaru.reportes.model.Review;
 import duoc.amaru.reportes.repository.ReviewRepo;
@@ -18,6 +19,9 @@ public class ReviewServicio {
 
     @Autowired
     private ProdClient prodClient;
+
+    @Autowired
+    private SesionClient sesionClient;
 
     // MOSTRAR RESEÑAS
     public ResponseEntity<?> mostrarTodo() {
@@ -39,8 +43,10 @@ public class ReviewServicio {
 
     // CREAR RESEÑA
     public ResponseEntity<?> crearReview(Long userId, Long prodId, ReviewDTO review) {
-        // Validar usuario
-        // TODO;
+        // Validar usuario ejecutor
+        ResponseEntity<?> reply = sesionClient.validarCliente(userId);
+        if (reply != null)
+            return reply;
 
         // Validar producto id
         if (!prodClient.existeProdcuto(prodId))
@@ -61,7 +67,9 @@ public class ReviewServicio {
     // EDITAR COMENTARIO
     public ResponseEntity<?> editarComentario(String comentario, Long user, Long reviewId) {
         // Validar usuario
-        // TODO;
+        ResponseEntity<?> reply = sesionClient.validarCliente(user);
+        if (reply != null)
+            return reply;
 
         if (!reviewRepo.existsById(reviewId))
             return ResponseEntity.status(404).body("No se hayó la reseña");
@@ -74,7 +82,10 @@ public class ReviewServicio {
 
     // ELIMINAR RESEÑA
     public ResponseEntity<?> eliminarReview(Long reviewId, Long user) {
-        // TODO: Validar usuario
+        // Validar cliente
+        ResponseEntity<?> reply = sesionClient.validarCliente(user);
+        if (reply != null)
+            return reply;
 
         if (!reviewRepo.existsById(reviewId))
             return ResponseEntity.status(404).body("No se hayó la reseña");
