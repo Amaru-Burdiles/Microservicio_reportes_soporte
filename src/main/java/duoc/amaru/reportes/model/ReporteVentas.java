@@ -17,5 +17,4 @@ public class ReporteVentas extends Reporte {
 
     private double totalVentas;
     private int cantPedidos;
-    private String periodo;
 }

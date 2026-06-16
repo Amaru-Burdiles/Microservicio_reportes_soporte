@@ -10,16 +10,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "reporte_inventario")
-public class ReporteInventario extends Reporte {
+@Table(name = "reporte_rendimiento")
+public class ReporteRendimiento extends Reporte {
+    private double ventasPorTienda;
 
-    private int totalProductos;
-
-    @Column(name = "prod_id_stock_bajo")
-    private List<Long> prodBajoStock;
+    @Column(name = "prod_id_mas_vendido")
+    private List<Long> itemsMasVendidos;
 }

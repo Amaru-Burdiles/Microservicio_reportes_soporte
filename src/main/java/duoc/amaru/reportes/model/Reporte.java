@@ -37,4 +37,6 @@ public abstract class Reporte {
 
     private String formato;
 
+    private String periodo;
+
 }
