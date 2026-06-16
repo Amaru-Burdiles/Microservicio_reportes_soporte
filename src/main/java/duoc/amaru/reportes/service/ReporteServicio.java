@@ -31,7 +31,7 @@ public class ReporteServicio {
     @Autowired // Client Pedido
     private PedidoClient pedidoClient;
 
-    @Autowired
+    @Autowired // Client Sesion
     private SesionClient sesionClient;
     
     // GENERAR REPORTE VENTAS
@@ -74,7 +74,8 @@ public class ReporteServicio {
         inv.setTotalProductos(totalProds);
         
         List<ProdDTO> stockBajo = prodClient.getProductosLowStock(umbral, invId);
-        inv.setProdBajoStock(stockBajo);
+        // TODO: fix this line ↓↓
+        // inv.setProdBajoStock(stockBajo);
         
         reporteRepo.save(inv);
         return ResponseEntity.ok("Reporte generado con Id #"+ inv.getIdReporte());
