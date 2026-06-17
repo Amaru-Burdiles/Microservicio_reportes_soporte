@@ -1,6 +1,7 @@
 package duoc.amaru.reportes.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,18 +42,21 @@ public class ReporteServicio {
         if (reply != null)
             return reply;
 
+        // Rellenar especificaciones de reporte
         ReporteVentas ventas = new ReporteVentas();
         ventas.setTipoReporte("Ventas");
         ventas.setFechaGeneracion(LocalDateTime.now());
         ventas.setGeneradoPor(userId);
         ventas.setFormato("JSON");
 
+        // Rellenar estadisticas de ventas
         double suma = facturaClient.getTotalFacturas();
         ventas.setTotalVentas(suma);
         
         int pedidos = pedidoClient.getPedidos();
         ventas.setCantPedidos(pedidos);
         
+        // Guardar reporte
         reporteRepo.save(ventas);
         return ResponseEntity.ok("Reporte generado con Id #"+ ventas.getIdReporte());
     }
@@ -64,22 +68,31 @@ public class ReporteServicio {
         if (reply != null)
             return reply;
 
+        // Rellenar especificaciones de reporte
         ReporteInventario inv = new ReporteInventario();
         inv.setTipoReporte("Inventario");
         inv.setFechaGeneracion(LocalDateTime.now());
         inv.setGeneradoPor(userId);
         inv.setFormato("JSON");
         
+        // Rellenar estadisticas de inventario
         int totalProds = prodClient.getTotalProductos();
         inv.setTotalProductos(totalProds);
         
         List<ProdDTO> stockBajo = prodClient.getProductosLowStock(umbral, invId);
-        // TODO: fix this line ↓↓
-        // inv.setProdBajoStock(stockBajo);
+        List<Long> prodIds = new ArrayList<>();
+        for (ProdDTO p : stockBajo) {
+            prodIds.add(p.getIdProducto());
+        }
+        inv.setProdBajoStock(prodIds);
         
+        // Guardar reporte
         reporteRepo.save(inv);
         return ResponseEntity.ok("Reporte generado con Id #"+ inv.getIdReporte());
     }
+
+    // GENERAR REPORTE RENDIMIENTO
+    // TODO: Corregir modelo e implementar metodos para el calculo de rendimiento
 
     // OBTENER TODOS LOS REPORTES
     public ResponseEntity<?> mostrarTodos(Long userId) {

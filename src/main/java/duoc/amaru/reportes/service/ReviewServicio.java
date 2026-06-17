@@ -14,32 +14,14 @@ import duoc.amaru.reportes.repository.ReviewRepo;
 
 @Service
 public class ReviewServicio {
-    @Autowired
+    @Autowired // Repo Review
     private ReviewRepo reviewRepo;
 
-    @Autowired
+    @Autowired // Client Producto
     private ProdClient prodClient;
 
-    @Autowired
+    @Autowired // Client Sesion
     private SesionClient sesionClient;
-
-    // MOSTRAR RESEÑAS
-    public ResponseEntity<?> mostrarTodo() {
-        List<Review> reviews = reviewRepo.findAll();
-        if (reviews.isEmpty())
-            return ResponseEntity.status(404).body("No hay reseñas registradas");
-        
-        return ResponseEntity.ok(reviews);
-    }
-
-    // MOSTRAR RESEÑAS POR PRODUCTO
-    public ResponseEntity<?> filtrarPorProducto(Long prodId) {
-        List<Review> reviews = reviewRepo.findAllByIdProducto(prodId);
-        if (reviews.isEmpty())
-            return ResponseEntity.status(404).body("No hay reseñas para este producto");
-
-        return ResponseEntity.ok(reviews);
-    }
 
     // CREAR RESEÑA
     public ResponseEntity<?> crearReview(Long userId, Long prodId, ReviewDTO review) {
@@ -63,6 +45,25 @@ public class ReviewServicio {
         reviewRepo.save(r);
         return ResponseEntity.ok("Reseña creada y publicada");
     }
+    
+    // MOSTRAR RESEÑAS
+    public ResponseEntity<?> mostrarTodo() {
+        List<Review> reviews = reviewRepo.findAll();
+        if (reviews.isEmpty())
+            return ResponseEntity.status(404).body("No hay reseñas registradas");
+        
+        return ResponseEntity.ok(reviews);
+    }
+
+    // MOSTRAR RESEÑAS POR PRODUCTO
+    public ResponseEntity<?> filtrarPorProducto(Long prodId) {
+        List<Review> reviews = reviewRepo.findAllByIdProducto(prodId);
+        if (reviews.isEmpty())
+            return ResponseEntity.status(404).body("No hay reseñas para este producto");
+
+        return ResponseEntity.ok(reviews);
+    }
+
 
     // EDITAR COMENTARIO
     public ResponseEntity<?> editarComentario(String comentario, Long user, Long reviewId) {
