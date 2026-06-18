@@ -58,7 +58,7 @@ public class ReporteServicio {
         
         // Guardar reporte
         reporteRepo.save(ventas);
-        return ResponseEntity.ok("Reporte generado con Id #"+ ventas.getIdReporte());
+        return ResponseEntity.ok("Reporte generado con Id #"+ ventas.getIdReporte() +'\n'+ ventas);
     }
     
     // GENERAR REPORTE INVENTARIO
@@ -88,7 +88,7 @@ public class ReporteServicio {
         
         // Guardar reporte
         reporteRepo.save(inv);
-        return ResponseEntity.ok("Reporte generado con Id #"+ inv.getIdReporte());
+        return ResponseEntity.ok("Reporte generado con Id #"+ inv.getIdReporte() +'\n'+ inv);
     }
 
     // GENERAR REPORTE RENDIMIENTO
