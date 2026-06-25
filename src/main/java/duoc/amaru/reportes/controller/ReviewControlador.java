@@ -1,11 +1,14 @@
 package duoc.amaru.reportes.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import duoc.amaru.reportes.dto.ReviewDTO;
+import duoc.amaru.reportes.model.Review;
 import duoc.amaru.reportes.service.ReviewServicio;
 import jakarta.validation.Valid;
 
@@ -27,7 +30,11 @@ public class ReviewControlador {
     // MOSTRAR RESEÑAS
     @GetMapping
     public ResponseEntity<?> getReviews() {
-        return reviewServicio.mostrarTodo();
+        List<Review> resultado = reviewServicio.mostrarTodo();
+        if (resultado.isEmpty())
+            return ResponseEntity.status(404).body("No hay reseñas registradas");
+        
+        return ResponseEntity.ok(resultado);
     }
     
     // MOSTRAR RESEÑAS POR PRODUCTO

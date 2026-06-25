@@ -47,12 +47,9 @@ public class ReviewServicio {
     }
     
     // MOSTRAR RESEÑAS
-    public ResponseEntity<?> mostrarTodo() {
-        List<Review> reviews = reviewRepo.findAll();
-        if (reviews.isEmpty())
-            return ResponseEntity.status(404).body("No hay reseñas registradas");
-        
-        return ResponseEntity.ok(reviews);
+    public List<Review> mostrarTodo() {
+        //reviewRepo.findAll();
+        return reviewRepo.findAll();
     }
 
     // MOSTRAR RESEÑAS POR PRODUCTO
