@@ -1,7 +1,6 @@
 package duoc.amaru.reportes.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,9 +12,17 @@ public class SesionClient {
     private String serviceUrl = "http://localhost:8086/api/v1/sesiones";
 
     // VERIFICA QUE EL EMPLEADO TENGO UN ACCESO SUPERIOR A FILTRO 
-    public ResponseEntity<?> validarAceso(Long ejecutorId, int filtro) {
-        String url = serviceUrl + "/access-validation/exe:"+ ejecutorId +"/filter:"+ filtro;
-        return restTemplate.getForObject(url, ResponseEntity.class);
+    public boolean validarAceso(Long ejecutorId, int filtro) {
+        //try {
+            String url = serviceUrl + "/validacion-empleado/exe:"+ ejecutorId +"/filter:"+ filtro;
+            return restTemplate.getForObject(url, boolean.class);
+            
+        //} catch (Exception e) {
+        //    System.out.println("ERROR CATCHED :D");
+        //}
+
+        //return false;
+        
     }
 
     // VERIFICA SI EL USUARIO ESTA LOGUEADO
@@ -25,8 +32,8 @@ public class SesionClient {
     }
 
     // VERIFICAR QUE SE TRATA DE UN CLIENTE Y ESTA LOGUEADO
-    public ResponseEntity<?> validarCliente(Long userId) {
+    public boolean validarCliente(Long userId) {
         String url = serviceUrl + "/validacion-cliente/user:" + userId;
-        return restTemplate.getForObject(url, ResponseEntity.class);
+        return restTemplate.getForObject(url, boolean.class);
     }
 }

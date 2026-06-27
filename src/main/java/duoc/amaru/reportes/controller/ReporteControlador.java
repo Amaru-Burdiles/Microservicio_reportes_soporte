@@ -19,7 +19,7 @@ public class ReporteControlador {
     private ReporteServicio reporteServicio;
 
     // GENERAR REPORTE VENTAS
-    @PostMapping("/generar/ventas/{id}")
+    @PostMapping("/generar/ventas/{userId}")
     public ResponseEntity<?> postReporteVentas(@PathVariable Long userId) {
         return reporteServicio.generarReporteVenta(userId);
     }

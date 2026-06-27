@@ -22,9 +22,7 @@ public class SolicitudServicio {
     // CREAR SOLICITUD
     public ResponseEntity<?> crearSoli(CrearSoliDTO soli, Long userId, String tipoSoli) {
         // Validar usuario
-        ResponseEntity<?> reply = sesionClient.validarCliente(userId);
-        if (reply != null)
-            return reply;
+        sesionClient.validarCliente(userId);
 
         // Creación de solicitud
         Solicitud newSolicitud = new Solicitud();

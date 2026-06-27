@@ -26,9 +26,7 @@ public class ReviewServicio {
     // CREAR RESEÑA
     public ResponseEntity<?> crearReview(Long userId, Long prodId, ReviewDTO review) {
         // Validar usuario ejecutor
-        ResponseEntity<?> reply = sesionClient.validarCliente(userId);
-        if (reply != null)
-            return reply;
+        sesionClient.validarCliente(userId);
 
         // Validar producto id
         if (!prodClient.existeProdcuto(prodId))
@@ -65,9 +63,7 @@ public class ReviewServicio {
     // EDITAR COMENTARIO
     public ResponseEntity<?> editarComentario(String comentario, Long user, Long reviewId) {
         // Validar usuario
-        ResponseEntity<?> reply = sesionClient.validarCliente(user);
-        if (reply != null)
-            return reply;
+        sesionClient.validarCliente(user);
 
         if (!reviewRepo.existsById(reviewId))
             return ResponseEntity.status(404).body("No se hayó la reseña");
@@ -81,9 +77,7 @@ public class ReviewServicio {
     // ELIMINAR RESEÑA
     public ResponseEntity<?> eliminarReview(Long reviewId, Long user) {
         // Validar cliente
-        ResponseEntity<?> reply = sesionClient.validarCliente(user);
-        if (reply != null)
-            return reply;
+        sesionClient.validarCliente(user);
 
         if (!reviewRepo.existsById(reviewId))
             return ResponseEntity.status(404).body("No se hayó la reseña");

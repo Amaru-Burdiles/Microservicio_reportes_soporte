@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import duoc.amaru.reportes.client.FacturaClient;
 import duoc.amaru.reportes.client.PedidoClient;
 import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.client.SesionClient;
@@ -23,9 +22,6 @@ public class ReporteServicio {
     @Autowired // Repo Reporte
     private ReporteRepo reporteRepo;
 
-    @Autowired // Client Factura
-    private FacturaClient facturaClient;
-
     @Autowired // Client Producto
     private ProdClient prodClient;
 
@@ -38,9 +34,7 @@ public class ReporteServicio {
     // GENERAR REPORTE VENTAS
     public ResponseEntity<?> generarReporteVenta(Long userId) {
         // Validar usuario ejecutor
-        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
-        if (reply != null)
-            return reply;
+        sesionClient.validarAceso(userId, 3);
 
         // Rellenar especificaciones de reporte
         ReporteVentas ventas = new ReporteVentas();
@@ -50,8 +44,8 @@ public class ReporteServicio {
         ventas.setFormato("JSON");
 
         // Rellenar estadisticas de ventas
-        double suma = facturaClient.getTotalFacturas();
-        ventas.setTotalVentas(suma);
+        //double suma = facturaClient.getTotalFacturas();
+        //ventas.setTotalVentas(suma);
         
         int pedidos = pedidoClient.getPedidos();
         ventas.setCantPedidos(pedidos);
@@ -64,9 +58,7 @@ public class ReporteServicio {
     // GENERAR REPORTE INVENTARIO
     public ResponseEntity<?> generarReporteInv(Long userId, int umbral, Long invId) {
         // Validar usuario ejecutor
-        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
-        if (reply != null)
-            return reply;
+        sesionClient.validarAceso(userId, 3);
 
         // Rellenar especificaciones de reporte
         ReporteInventario inv = new ReporteInventario();
@@ -97,9 +89,7 @@ public class ReporteServicio {
     // OBTENER TODOS LOS REPORTES
     public ResponseEntity<?> mostrarTodos(Long userId) {
         // Validar usuario ejecutor
-        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
-        if (reply != null)
-            return reply;
+        sesionClient.validarAceso(userId, 3);
 
         List<Reporte> reportes = reporteRepo.findAll();
         if (reportes.isEmpty())
@@ -111,9 +101,7 @@ public class ReporteServicio {
     // OBTENER REPORTES POR TIPO
     public ResponseEntity<?> reportesByTipo(String tipo, Long userId) {
         // Validar usuario ejecutor
-        ResponseEntity<?> reply = sesionClient.validarAceso(userId, 3);
-        if (reply != null)
-            return reply;
+        sesionClient.validarAceso(userId, 3);
 
         if (!tipo.equalsIgnoreCase("inventario") || !tipo.equalsIgnoreCase("ventas"))
             return ResponseEntity.badRequest().body("Tipo de reporte desconocido");
