@@ -3,12 +3,13 @@ package duoc.amaru.reportes.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.client.SesionClient;
 import duoc.amaru.reportes.dto.ReviewDTO;
+import duoc.amaru.reportes.error.exceptions.ProdNoExiste;
+import duoc.amaru.reportes.error.exceptions.ReviewYaExiste;
 import duoc.amaru.reportes.model.Review;
 import duoc.amaru.reportes.repository.ReviewRepo;
 
@@ -24,24 +25,26 @@ public class ReviewServicio {
     private SesionClient sesionClient;
 
     // CREAR RESEÑA
-    public ResponseEntity<?> crearReview(Long userId, Long prodId, ReviewDTO review) {
+    public Review crearReview(Long userId, Long prodId, ReviewDTO review) {
         // Validar usuario ejecutor
         sesionClient.validarCliente(userId);
 
         // Validar producto id
         if (!prodClient.existeProdcuto(prodId))
-            return ResponseEntity.badRequest().body("Producto no encontrado");
+            throw new ProdNoExiste();
 
+        // Validar reseña duplicada
         if (reviewRepo.existsByIdCliente(userId) && reviewRepo.existsByIdProducto(prodId))
-            return ResponseEntity.badRequest().body("Ya creaste una reseña para este producto");
+            throw new ReviewYaExiste();
 
+        // Creacion de la reseña
         Review r = new Review();
         r.setIdCliente(userId);
         r.setIdProducto(prodId);
         r.setCalificacion(review.getCalificacion());
         r.setComentario(review.getComentario().strip());
         reviewRepo.save(r);
-        return ResponseEntity.ok("Reseña creada y publicada");
+        return r;
     }
     
     // MOSTRAR RESEÑAS
@@ -51,39 +54,38 @@ public class ReviewServicio {
     }
 
     // MOSTRAR RESEÑAS POR PRODUCTO
-    public ResponseEntity<?> filtrarPorProducto(Long prodId) {
+    public List<Review> filtrarPorProducto(Long prodId) {
         List<Review> reviews = reviewRepo.findAllByIdProducto(prodId);
-        if (reviews.isEmpty())
-            return ResponseEntity.status(404).body("No hay reseñas para este producto");
-
-        return ResponseEntity.ok(reviews);
+        return reviews;
     }
 
 
     // EDITAR COMENTARIO
-    public ResponseEntity<?> editarComentario(String comentario, Long user, Long reviewId) {
+    public Review editarComentario(String comentario, Long user, Long reviewId) {
         // Validar usuario
         sesionClient.validarCliente(user);
 
+        // Validar reseña existe
         if (!reviewRepo.existsById(reviewId))
-            return ResponseEntity.status(404).body("No se hayó la reseña");
+            return null;
 
+        // Edición de reseña
         Review review = reviewRepo.findById(reviewId).orElse(null);
         review.setComentario(comentario.strip());
         reviewRepo.save(review);
-        return ResponseEntity.ok("Reseña editada");
+        return review;
     }
 
     // ELIMINAR RESEÑA
-    public ResponseEntity<?> eliminarReview(Long reviewId, Long user) {
+    public boolean eliminarReview(Long reviewId, Long user) {
         // Validar cliente
         sesionClient.validarCliente(user);
 
         if (!reviewRepo.existsById(reviewId))
-            return ResponseEntity.status(404).body("No se hayó la reseña");
+            return false;
 
         reviewRepo.deleteById(reviewId);
-        return ResponseEntity.ok("Reseña eliminada");
+        return true;
     }
 
 }

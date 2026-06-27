@@ -12,8 +12,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import duoc.amaru.reportes.error.exceptions.ProdNoExiste;
+import duoc.amaru.reportes.error.exceptions.ReviewYaExiste;
+import duoc.amaru.reportes.error.exceptions.UnknownTipoReporte;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    
+    // Excepciones del modelo por @Valid en el enpoint Post, Put en controlador 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> manejoErroresValidacion(MethodArgumentNotValidException ex) {
@@ -27,10 +33,29 @@ public class GlobalExceptionHandler {
         return errores;
     }
 
+    // Excepciones procedentes de *Client
     @ExceptionHandler(HttpStatusCodeException.class)
     public ResponseEntity<String> restClientException(HttpStatusCodeException ex) {
         String error = ex.getResponseBodyAsString();
 
         return ResponseEntity.status(ex.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(error);
+    }
+
+    // Excepción de reporte servicio -> tipo de reporte desconocido
+    @ExceptionHandler(UnknownTipoReporte.class)
+    public ResponseEntity<String> reporteServicioEx(UnknownTipoReporte ex) {
+        return ResponseEntity.badRequest().body("Tipo de reporte desconocido");
+    }
+
+    // Excepción de reseña servicio -> Id de producto no existe
+    @ExceptionHandler(ProdNoExiste.class)
+    public ResponseEntity<String> reviewServicioEx(ProdNoExiste ex) {
+        return ResponseEntity.badRequest().body("Producto no encontrado");
+    }
+
+    // Excepción de reseña servicio -> Reseña duplicada por producto
+    @ExceptionHandler(ReviewYaExiste.class)
+    public ResponseEntity<String> reviewServicioEx(ReviewYaExiste ex) {
+        return ResponseEntity.badRequest().body("Ya escribiste una reseña para este producto");
     }
 }

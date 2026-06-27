@@ -22,3 +22,5 @@ public class ReporteRendimiento extends Reporte {
     @Column(name = "prod_id_mas_vendido")
     private List<Long> itemsMasVendidos;
 }
+
+// TODO: Corregir de acuerdo a casos de uso adaptar para los calculos correspondientes

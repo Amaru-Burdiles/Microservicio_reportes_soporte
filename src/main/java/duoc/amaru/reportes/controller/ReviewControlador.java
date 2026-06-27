@@ -40,24 +40,38 @@ public class ReviewControlador {
     // MOSTRAR RESEÑAS POR PRODUCTO
     @GetMapping("/producto:{prodId}")
     public ResponseEntity<?> getReviewsByProducto(@RequestParam Long prodId) {
-        return reviewServicio.filtrarPorProducto(prodId);
+        List<Review> reply = reviewServicio.filtrarPorProducto(prodId);
+        if (reply.isEmpty())
+            return ResponseEntity.status(404).body("No hay reseñas para este producto");
+
+        return ResponseEntity.ok(reply);
     }
     
     // CREAR RESEÑA
     @PostMapping("/producto:{prodId}/user:{userId}")
     public ResponseEntity<?> postReview(@Valid @RequestBody ReviewDTO r, @PathVariable Long prod, @PathVariable Long user) {
-        return reviewServicio.crearReview(user, prod, r);
+        Review reply = reviewServicio.crearReview(user, prod, r);
+        return ResponseEntity.ok("Reseña creada y publicada!\n"+ reply);
     }
     
     // CAMBIAR COMENTARIO
     @PutMapping("/editar/review:{id}/{userId}")
     public ResponseEntity<?> putComentarioReview(@PathVariable Long id, @PathVariable Long userId, @RequestBody String comentario) {
-        return reviewServicio.editarComentario(comentario, userId, id);
+        Review r = reviewServicio.editarComentario(comentario, userId, id);
+        if (r == null)
+            return ResponseEntity.status(404).body("No se hayó la reseña");
+
+        String reply = "Reseña editada!\n"+ "Calificación: "+ r.getCalificacion() +"\nComentario: "+ r.getComentario();
+        return ResponseEntity.ok(reply);
     }
 
     // ELIMINAR RESEÑA
     @DeleteMapping("/eliminar:{reviewId}/userId")
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId, @PathVariable Long userId) {
-        return reviewServicio.eliminarReview(reviewId, userId);
+        boolean reply = reviewServicio.eliminarReview(reviewId, userId);
+        if (reply)
+            return ResponseEntity.ok("Reseña eliminada");
+        
+        return ResponseEntity.status(404).body("No se hayó la reseña");
     }
 }

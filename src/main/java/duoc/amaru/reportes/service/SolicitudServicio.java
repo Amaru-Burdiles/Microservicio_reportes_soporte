@@ -3,7 +3,6 @@ package duoc.amaru.reportes.service;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import duoc.amaru.reportes.client.SesionClient;
@@ -20,7 +19,7 @@ public class SolicitudServicio {
     private SesionClient sesionClient;
 
     // CREAR SOLICITUD
-    public ResponseEntity<?> crearSoli(CrearSoliDTO soli, Long userId, String tipoSoli) {
+    public Solicitud crearSoli(CrearSoliDTO soli, Long userId, String tipoSoli) {
         // Validar usuario
         sesionClient.validarCliente(userId);
 
@@ -34,6 +33,9 @@ public class SolicitudServicio {
         newSolicitud.setTipoSoli(tipoSoli);
 
         solicitudRepo.save(newSolicitud);
-        return ResponseEntity.ok("Solicitud creada");
+        return newSolicitud;
     }
+
+    // TODO: Implementar crud y demas casos de uso
+    //       consultar diagrama de casos de uso
 }

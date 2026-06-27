@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import duoc.amaru.reportes.client.PedidoClient;
 import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.client.SesionClient;
 import duoc.amaru.reportes.dto.ProdDTO;
+import duoc.amaru.reportes.error.exceptions.UnknownTipoReporte;
 import duoc.amaru.reportes.model.Reporte;
 import duoc.amaru.reportes.model.ReporteInventario;
 import duoc.amaru.reportes.model.ReporteVentas;
@@ -32,7 +32,7 @@ public class ReporteServicio {
     private SesionClient sesionClient;
     
     // GENERAR REPORTE VENTAS
-    public ResponseEntity<?> generarReporteVenta(Long userId) {
+    public ReporteVentas generarReporteVenta(Long userId) {
         // Validar usuario ejecutor
         sesionClient.validarAceso(userId, 3);
 
@@ -52,11 +52,11 @@ public class ReporteServicio {
         
         // Guardar reporte
         reporteRepo.save(ventas);
-        return ResponseEntity.ok("Reporte generado con Id #"+ ventas.getIdReporte() +'\n'+ ventas);
+        return ventas;
     }
     
     // GENERAR REPORTE INVENTARIO
-    public ResponseEntity<?> generarReporteInv(Long userId, int umbral, Long invId) {
+    public ReporteInventario generarReporteInv(Long userId, int umbral, Long invId) {
         // Validar usuario ejecutor
         sesionClient.validarAceso(userId, 3);
 
@@ -80,33 +80,32 @@ public class ReporteServicio {
         
         // Guardar reporte
         reporteRepo.save(inv);
-        return ResponseEntity.ok("Reporte generado con Id #"+ inv.getIdReporte() +'\n'+ inv);
+        return inv;
     }
 
     // GENERAR REPORTE RENDIMIENTO
     // TODO: Corregir modelo e implementar metodos para el calculo de rendimiento
 
     // OBTENER TODOS LOS REPORTES
-    public ResponseEntity<?> mostrarTodos(Long userId) {
+    public List<Reporte> mostrarTodos(Long userId) {
         // Validar usuario ejecutor
         sesionClient.validarAceso(userId, 3);
 
-        List<Reporte> reportes = reporteRepo.findAll();
-        if (reportes.isEmpty())
-            return ResponseEntity.status(404).body("No se ha creado ningún reporte aún");
-
-        return ResponseEntity.ok(reportes);
+        return reporteRepo.findAll();
     }
 
     // OBTENER REPORTES POR TIPO
-    public ResponseEntity<?> reportesByTipo(String tipo, Long userId) {
+    public List<Reporte> reportesByTipo(String tipo, Long userId) {
         // Validar usuario ejecutor
         sesionClient.validarAceso(userId, 3);
 
-        if (!tipo.equalsIgnoreCase("inventario") || !tipo.equalsIgnoreCase("ventas"))
-            return ResponseEntity.badRequest().body("Tipo de reporte desconocido");
+        if (!tipo.equalsIgnoreCase("inventario")
+            && !tipo.equalsIgnoreCase("ventas")
+            && !tipo.equalsIgnoreCase("rendimiento")) {
+            throw new UnknownTipoReporte();
+        }
 
-        return ResponseEntity.ok(reporteRepo.findByTipoReporte(tipo));
+        return reporteRepo.findByTipoReporte(tipo);
     }
 
 }
