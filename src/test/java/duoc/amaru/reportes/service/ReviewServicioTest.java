@@ -12,26 +12,33 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
+import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.client.SesionClient;
 import duoc.amaru.reportes.dto.ReviewDTO;
+import duoc.amaru.reportes.error.exceptions.ProdNoExiste;
 import duoc.amaru.reportes.error.exceptions.ReviewYaExiste;
 import duoc.amaru.reportes.model.Review;
 import duoc.amaru.reportes.repository.ReviewRepo;
 
 public class ReviewServicioTest {
-    @Mock
+    @Mock  // Imitación de Review Repo
     private ReviewRepo reviewRepo;
 
     @Mock  // Imitación de Sesion Client
     private SesionClient sesionClient;
+
+    @Mock // Imitación de Producto Client
+    private ProdClient prodClient;
 
     @InjectMocks
     private ReviewServicio reviewServicio;
@@ -41,27 +48,29 @@ public class ReviewServicioTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // CREAR RESEÑA (EXITOSO; CLI-1L NO HA CREADO NINGUNA RESEÑA)
+    // CREAR RESEÑA (EXITOSO; CLIENTE NO HA CREADO NINGUNA RESEÑA)
     @Test
-    void testCrearReviewTCli() {
+    void testCrearReviewCli() {
         // Preparación
-        ReviewDTO nueva = new ReviewDTO(5, "    Muy buen jabón    ");
-        Review r = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        ReviewDTO dto = new ReviewDTO(5, "    Muy buen jabón    ");
+        Review armada = new Review(null, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        Review guardada = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
 
         // Configuración
         /* 
-            Cliente 1L existe;            Retorna "true"
-            Reseñas de Cli-1L no existen; Retorna "false"
-            Reseña para Prod-1L existe;   Retorna "true"
-            Guardar Reseña "r";           Retorna "r"
+            El Cliente existe
+            Reseñas de ese Cliente no existen
+            Reseña para el Producto existe
+            Guardar Reseña "r"
         */
-        when(reviewRepo.save(r)).thenReturn(r);
         when(sesionClient.validarCliente(1L)).thenReturn(true);
+        when(prodClient.existeProdcuto(1L)).thenReturn(true);
         when(reviewRepo.existsByIdCliente(1L)).thenReturn(false);
         when(reviewRepo.existsByIdProducto(1L)).thenReturn(true);
+        when(reviewRepo.save(armada)).thenReturn(guardada);
 
         // Testeo
-        Review resultado = reviewServicio.crearReview(1L, 1L, nueva);
+        Review resultado = reviewServicio.crearReview(1L, 1L, dto);
 
         // Verificación
         /*
@@ -72,47 +81,49 @@ public class ReviewServicioTest {
             Id Producto = 1L
             Fecha es la actual
         */
-        assertEquals(resultado.getCalificacion(), 5);
-        assertEquals(resultado.getComentario(), "Muy buen jabón");
-        assertEquals(resultado.getIdReview(), 1L);
-        assertEquals(resultado.getIdCliente(), 1L);
-        assertEquals(resultado.getIdProducto(), 1L);
-        assertEquals(resultado.getFecha(), LocalDate.now());
+        assertEquals(5, resultado.getCalificacion());
+        assertEquals("Muy buen jabón", resultado.getComentario());
+        assertEquals(1L, resultado.getIdReview());
+        assertEquals(1L, resultado.getIdCliente());
+        assertEquals(1L, resultado.getIdProducto());
+        assertEquals(LocalDate.now(), resultado.getFecha());
 
         /*
-            Id Cliente existe y está logeado -> ejecutó 1 vez
-            Reseñas de Cliente existe         -> ejecuto 1 vez 
-            Reseña para Producto existe      -> ejecutó 1 vez
-            Guardar Reseña                   -> ejecutó 1 vez
+            El Cliente existe y está logeado -> ejecutó 1 vez
+            Reseñas deL Cliente existen    -> ejecutó 1 vez 
+            Reseña para Producto existe  -> ejecutó 1 vez
+            Guardar Reseña             -> ejecutó 1 vez
         */
         verify(sesionClient, times(1)).validarCliente(1L);
         verify(reviewRepo, times(1)).existsByIdCliente(1L);
-        verify(reviewRepo, times(1)).existsByIdProducto(1L);
-        verify(reviewRepo, times(1)).save(r);
+        verify(reviewRepo, times(0)).existsByIdProducto(1L);
+        verify(reviewRepo, times(1)).save(armada);
     }
 
 
-    // CREAR RESEÑA (EXITOSO; CLI-1L NO HA CREADO RESEÑAS PARA PROD-1L)
+    // CREAR RESEÑA (EXITOSO; CLIENTE NO HA CREADO RESEÑAS PARA EL PRODUCTO)
     @Test
-    void testCrearReviewTProd() {
+    void testCrearReviewProd() {
         // Preparación
-        ReviewDTO nueva = new ReviewDTO(5, "    Muy buen jabón    ");
-        Review r = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        ReviewDTO dto = new ReviewDTO(5, "    Muy buen jabón    ");
+        Review armada = new Review(null, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        Review guardada = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
 
         // Configuración
         /* 
-            Cliente 1L existe
-            Existen Reseñas de Cli-1L 
-            No existen Reseñas para Prod-1L
+            El Cliente existe
+            Existen Reseñas del Cliente 
+            No existen Reseñas para el Producto
             Guardar Reseña "r"
         */
-        when(reviewRepo.save(r)).thenReturn(r);
         when(sesionClient.validarCliente(1L)).thenReturn(true);
+        when(prodClient.existeProdcuto(1L)).thenReturn(true);
         when(reviewRepo.existsByIdCliente(1L)).thenReturn(true);
         when(reviewRepo.existsByIdProducto(1L)).thenReturn(false);
+        when(reviewRepo.save(armada)).thenReturn(guardada);
 
         // Testeo
-        Review resultado = reviewServicio.crearReview(1L, 1L, nueva);
+        Review resultado = reviewServicio.crearReview(1L, 1L, dto);
 
         // Verificación
         /*
@@ -123,51 +134,51 @@ public class ReviewServicioTest {
             Id Producto = 1L
             Fecha es la actual
         */
-        assertEquals(resultado.getCalificacion(), 5);
-        assertEquals(resultado.getComentario(), "Muy buen jabón");
-        assertEquals(resultado.getIdReview(), 1L);
-        assertEquals(resultado.getIdCliente(), 1L);
-        assertEquals(resultado.getIdProducto(), 1L);
-        assertEquals(resultado.getFecha(), LocalDate.now());
+        assertEquals(5, resultado.getCalificacion());
+        assertEquals("Muy buen jabón", resultado.getComentario());
+        assertEquals(1L, resultado.getIdReview());
+        assertEquals(1L, resultado.getIdCliente());
+        assertEquals(1L, resultado.getIdProducto());
+        assertEquals(LocalDate.now(), resultado.getFecha());
 
         /*
-            Id Cliente existe y está logeado -> ejecutó 1 vez
-            Cliente ha creado reseñas       -> ejecuto 1 vez 
-            Existen Reseñas para Prod-1L   -> ejecutó 1 vez
-            Guardar Reseña                -> ejecutó 1 vez
+            El Cliente existe y está logeado -> ejecutó 1 vez
+            El Cliente ha creado reseñas      -> ejecuto 1 vez 
+            Existen Reseñas para el Producto   -> ejecutó 1 vez
+            Guardar Reseña                   -> ejecutó 1 vez
             */
         verify(sesionClient, times(1)).validarCliente(1L);
         verify(reviewRepo, times(1)).existsByIdCliente(1L);
         verify(reviewRepo, times(1)).existsByIdProducto(1L);
-        verify(reviewRepo, times(1)).save(r);
+        verify(reviewRepo, times(1)).save(armada);
     }
 
 
-    // CREAR RESEÑA (FALLIDO; ERROR CLIENTE ID)
+    // CREAR RESEÑA (FALLIDO; EL CLIENTE FALLÓ LA VALIDACIÓN)
     @Test
-    void testCrearReviewFCli() {
+    void testCrearReviewValidarCliente() {
         // Preparación
         ReviewDTO nueva = new ReviewDTO(5, "    Muy buen jabón    ");
         Review r = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
 
         // Configuración
         /* 
-            Cliente 1L no existe
-            Cliente no tiene Reseñas creadas
-            Reseña para Producto 1L existe; Retorna "true"
-            Guardar Reseña "r";             Retorna "r"
+            El Cliente no existe
+            El Cliente no tiene Reseñas creadas
+            Reseña para el Producto existe
+            Guardar Reseña
         */
-        when(sesionClient.validarCliente(1L)).thenThrow(HttpStatusCodeException.class);
+        when(sesionClient.validarCliente(1L))
+            .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        when(prodClient.existeProdcuto(1L)).thenReturn(true);
         when(reviewRepo.existsByIdCliente(1L)).thenReturn(false);
         when(reviewRepo.existsByIdProducto(1L)).thenReturn(true);
         when(reviewRepo.save(r)).thenReturn(r);
 
-        // Testeo
-        Review resultado = reviewServicio.crearReview(1L, 1L, nueva);
-
-        // Verificación
-        assertThrows(HttpStatusCodeException.class, () -> {sesionClient.validarCliente(1L);});
-        assertNull(resultado);
+        // Testeo y Verificación
+        assertThrows(HttpClientErrorException.class, () -> {
+            reviewServicio.crearReview(1L, 1L, nueva);
+        });
 
         /*
             Solo validarCliente se ejecuta */
@@ -177,12 +188,43 @@ public class ReviewServicioTest {
         verify(reviewRepo, times(0)).save(r);
     }
 
+    
+    // CREAR RESEÑA (FALLIDO; EL PRODUCTO NO EXISTE)
+    @Test
+    void testCrearReviewProdNoExiste() {
+        // Preparación
+        ReviewDTO dto = new ReviewDTO(5, "    Muy buen jabón    ");
+        Review armada = new Review(null, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        Review guardada = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+
+        // Configuración
+        /* */
+        when(sesionClient.validarCliente(1L)).thenReturn(true);
+        when(prodClient.existeProdcuto(1L)).thenReturn(false);
+        when(reviewRepo.existsByIdCliente(1L)).thenReturn(false);
+        when(reviewRepo.existsByIdProducto(1L)).thenReturn(false);
+        when(reviewRepo.save(armada)).thenReturn(guardada);
+
+        // Testeo y Verificación
+        assertThrows(ProdNoExiste.class, () -> {
+            reviewServicio.crearReview(1L, 1L, dto);    
+        });
+
+        /**/
+        verify(sesionClient, times(1)).validarCliente(1L);
+        verify(prodClient, times(1)).existeProdcuto(1L);
+        verify(reviewRepo, times(0)).existsByIdCliente(1L);
+        verify(reviewRepo, times(0)).existsByIdProducto(1L);
+        verify(reviewRepo, times(0)).save(armada);
+    }
+
     // CREAR RESEÑA (FALLIDO; RESEÑA DUPLICADA)
     @Test
     void testCrearReviewFDuplicado() {
         // Preparación
-        ReviewDTO nueva = new ReviewDTO(5, "    Muy buen jabón    ");
-        Review r = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        ReviewDTO dto = new ReviewDTO(5, "    Muy buen jabón    ");
+        Review armada = new Review(null, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        Review guardada = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
 
         // Configuración
         /* 
@@ -192,27 +234,24 @@ public class ReviewServicioTest {
             Guardar Reseña "r";             Retorna "r"
         */
         when(sesionClient.validarCliente(1L)).thenReturn(true);
+        when(prodClient.existeProdcuto(1L)).thenReturn(true);
         when(reviewRepo.existsByIdCliente(1L)).thenReturn(true);
         when(reviewRepo.existsByIdProducto(1L)).thenReturn(true);
-        when(reviewRepo.save(r)).thenReturn(r);
+        when(reviewRepo.save(armada)).thenReturn(guardada);
 
-        // Testeo
-        Review resultado = reviewServicio.crearReview(1L, 1L, nueva);
-
-        // Verificación
+        // Testeo y Verificación
         assertThrows(ReviewYaExiste.class, () -> {
-            if (reviewRepo.existsByIdCliente(1L) && reviewRepo.existsByIdProducto(1L));
+            reviewServicio.crearReview(1L, 1L, dto);    
         });
-
-        assertNull(resultado);
 
         /*
             Solo NO se ejecuta el guardado */
         verify(sesionClient, times(1)).validarCliente(1L);
         verify(reviewRepo, times(1)).existsByIdCliente(1L);
         verify(reviewRepo, times(1)).existsByIdProducto(1L);
-        verify(reviewRepo, times(0)).save(r);
+        verify(reviewRepo, times(0)).save(armada);
     }
+
 
     // MOSTRAR RESEÑAS (HAY RESEÑAS)
     @Test
@@ -305,12 +344,15 @@ public class ReviewServicioTest {
     @Test
     void testEditarReviewTrue() {
         // Preparación
-        Review editado = new Review(1L, 1L, 1L, 5, "Muy buen jabón, recomendado!", LocalDate.now());
         String comentario = "        Muy buen jabón, recomendado!    ";
+        Review former = new Review(1L, 1L, 1L, 5, "Muy buen jabón", LocalDate.now());
+        Review editado = new Review(1L, 1L, 1L, 5, "Muy buen jabón, recomendado!", LocalDate.now());
 
         // Configuración
-        when(reviewRepo.save(editado)).thenReturn(editado);
+        when(sesionClient.validarCliente(1L)).thenReturn(true);
         when(reviewRepo.existsById(1L)).thenReturn(true);
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(former));
+        when(reviewRepo.save(editado)).thenReturn(editado);
 
         // Testeo
         Review resultado = reviewServicio.editarComentario(comentario, 1L, 1L);
@@ -319,7 +361,9 @@ public class ReviewServicioTest {
         assertEquals(resultado.getComentario(), "Muy buen jabón, recomendado!");
         assertEquals(resultado, editado);
 
+        verify(sesionClient, times(1)).validarCliente(1L);
         verify(reviewRepo, times(1)).existsById(1L);
+        verify(reviewRepo, times(1)).findById(1L);
         verify(reviewRepo, times(1)).save(editado);
     }
 

@@ -1,5 +1,6 @@
 package duoc.amaru.reportes.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,20 +44,20 @@ public class ReviewServicio {
         r.setIdProducto(prodId);
         r.setCalificacion(review.getCalificacion());
         r.setComentario(review.getComentario().strip());
-        reviewRepo.save(r);
-        return r;
+        r.setFecha(LocalDate.now());
+
+        // Guardar y respuesta a controlador
+        return reviewRepo.save(r);
     }
     
     // MOSTRAR RESEÑAS
     public List<Review> mostrarTodo() {
-        //reviewRepo.findAll();
         return reviewRepo.findAll();
     }
 
     // MOSTRAR RESEÑAS POR PRODUCTO
     public List<Review> filtrarPorProducto(Long prodId) {
-        List<Review> reviews = reviewRepo.findAllByIdProducto(prodId);
-        return reviews;
+        return reviewRepo.findAllByIdProducto(prodId);
     }
 
 
@@ -72,8 +73,7 @@ public class ReviewServicio {
         // Edición de reseña
         Review review = reviewRepo.findById(reviewId).orElse(null);
         review.setComentario(comentario.strip());
-        reviewRepo.save(review);
-        return review;
+        return reviewRepo.save(review);
     }
 
     // ELIMINAR RESEÑA
