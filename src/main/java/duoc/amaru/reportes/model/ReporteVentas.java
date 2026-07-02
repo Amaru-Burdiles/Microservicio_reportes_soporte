@@ -1,5 +1,7 @@
 package duoc.amaru.reportes.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -17,4 +19,10 @@ public class ReporteVentas extends Reporte {
 
     private double totalVentas;
     private int cantPedidos;
+
+    public ReporteVentas(String tipo, LocalDateTime fecha, Long idEmp, String formato, String periodo, double totalVentas, int cantPedidos) {
+        super(null, tipo, fecha, idEmp, formato, periodo);
+        this.totalVentas = totalVentas;
+        this.cantPedidos = cantPedidos;
+    }
 }
