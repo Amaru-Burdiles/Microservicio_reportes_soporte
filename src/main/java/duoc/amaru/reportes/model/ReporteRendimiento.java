@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "reporte_rendimiento")
 public class ReporteRendimiento extends Reporte {
     
-    private int ventasTotales;
+    private double ventasTotales;
     private double ticketPromedio;
     private double tasaConversion;
     private double margenBruto;
@@ -28,7 +28,7 @@ public class ReporteRendimiento extends Reporte {
                               Long idEmp,
                               String formato,
                               String periodo,
-                              int ventasTotales,
+                              double ventasTotales,
                               double ticketPromedio,
                               double tasaConversion,
                               double margenBruto,

@@ -31,5 +31,5 @@ public class Solicitud {
     private String descripcion;
     private LocalDateTime fechaCreacion;
     private String estado;
-    private String tipoSoli;
+    private boolean reclamo;
 }

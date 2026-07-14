@@ -1,6 +1,7 @@
 package duoc.amaru.reportes.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class SolicitudServicio {
     private SesionClient sesionClient;
 
     // CREAR SOLICITUD
-    public Solicitud crearSoli(CrearSoliDTO soli, Long userId, String tipoSoli) {
+    public Solicitud crearSoli(CrearSoliDTO soli, Long userId, boolean esReclamo) {
         // Validar usuario
         sesionClient.validarCliente(userId);
 
@@ -30,12 +31,26 @@ public class SolicitudServicio {
         newSolicitud.setDescripcion(soli.getDescripcion());
         newSolicitud.setFechaCreacion(LocalDateTime.now());
         newSolicitud.setEstado("Sin revisar");
-        newSolicitud.setTipoSoli(tipoSoli);
+        newSolicitud.setReclamo(esReclamo);
 
-        solicitudRepo.save(newSolicitud);
-        return newSolicitud;
+        return solicitudRepo.save(newSolicitud);
     }
 
     // TODO: Implementar crud y demas casos de uso
     //       consultar diagrama de casos de uso
+
+    // CONSULTAR HISTORIAL
+    public List<Solicitud> getHistorial(Long userId, boolean deReclamos) {
+        // Validar usuario
+        sesionClient.validarCliente(userId);
+
+        if (deReclamos)
+            return solicitudRepo.findByClienteAndTipo(userId, deReclamos);
+
+        return solicitudRepo.findByClienteAndTipo(userId, deReclamos);
+    }
+
+
+    // CONSULTAR SOLICITUDES 
+
 }

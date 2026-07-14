@@ -10,10 +10,13 @@ import org.springframework.stereotype.Service;
 import duoc.amaru.reportes.client.PedidoClient;
 import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.client.SesionClient;
+import duoc.amaru.reportes.client.UsuarioClient;
+import duoc.amaru.reportes.client.VentaClient;
 import duoc.amaru.reportes.dto.ProdDTO;
 import duoc.amaru.reportes.error.exceptions.UnknownTipoReporte;
 import duoc.amaru.reportes.model.Reporte;
 import duoc.amaru.reportes.model.ReporteInventario;
+import duoc.amaru.reportes.model.ReporteRendimiento;
 import duoc.amaru.reportes.model.ReporteVentas;
 import duoc.amaru.reportes.repository.ReporteRepo;
 
@@ -28,8 +31,14 @@ public class ReporteServicio {
     @Autowired // Client Pedido
     private PedidoClient pedidoClient;
 
+    @Autowired
+    private VentaClient ventaClient;
+
     @Autowired // Client Sesion
     private SesionClient sesionClient;
+
+    @Autowired
+    private UsuarioClient usuarioClient;
     
     // GENERAR REPORTE VENTAS
     public ReporteVentas generarReporteVenta(Long userId) {
@@ -44,15 +53,14 @@ public class ReporteServicio {
         ventas.setFormato("JSON");
 
         // Rellenar estadisticas de ventas
-        //double suma = facturaClient.getTotalFacturas();
-        //ventas.setTotalVentas(suma);
+        double suma = ventaClient.calcTotalVentas();
+        ventas.setTotalVentas(suma);
         
-        int pedidos = pedidoClient.getPedidos();
+        int pedidos = pedidoClient.getCantPedidos();
         ventas.setCantPedidos(pedidos);
         
         // Guardar reporte
-        reporteRepo.save(ventas);
-        return ventas;
+        return reporteRepo.save(ventas);
     }
     
     // GENERAR REPORTE INVENTARIO
@@ -79,12 +87,42 @@ public class ReporteServicio {
         inv.setProdBajoStock(prodIds);
         
         // Guardar reporte
-        reporteRepo.save(inv);
-        return inv;
+        return reporteRepo.save(inv);
     }
 
     // GENERAR REPORTE RENDIMIENTO
-    // TODO: Corregir modelo e implementar metodos para el calculo de rendimiento
+    public ReporteRendimiento generarReporteRen(Long userId) {
+        // Validar usuario ejecutor
+        sesionClient.validarAceso(userId, 3);
+
+        // Rellenar especificaciones de reporte
+        ReporteRendimiento ren = new ReporteRendimiento();
+        ren.setTipoReporte("Rendimiento");
+        ren.setFechaGeneracion(LocalDateTime.now());
+        ren.setGeneradoPor(userId);
+        ren.setFormato("JSON");
+
+        // Rellenar especificaciones
+        double suma = ventaClient.calcTotalVentas();
+        ren.setVentasTotales(suma);
+
+        // Ticket Promedio
+        int transacciones = ventaClient.getCantVentasHechas();
+        ren.setTicketPromedio(ren.getVentasTotales() / transacciones);
+
+        // Tasa de Conversion
+        int clientesQueCompraron = ventaClient.getCantClientesQueCompraron();
+        int clientesRegistrados = usuarioClient.getClientesRegistrados();
+        ren.setTasaConversion(clientesQueCompraron / clientesRegistrados * 100);
+
+        // Margen Bruto
+        /* TODO: Crear una sección microservicio Inventario encargada de llevar
+           el registro del Costos de bienes vendidos (COGS). Mandar una petición
+           por este valor y utilizarlo para el calculo:
+           Ventas Totales - COGS / Ventas Totales
+        */
+        return reporteRepo.save(ren);
+    }
 
     // OBTENER TODOS LOS REPORTES
     public List<Reporte> mostrarTodos(Long userId) {
@@ -106,6 +144,14 @@ public class ReporteServicio {
         }
 
         return reporteRepo.findByTipoReporte(tipo);
+    }
+
+    // OBTENER REPORTE POR ID
+    public Reporte reporteById(Long idReporte, Long userId) {
+        // Validar usuario ejecutor
+        sesionClient.validarAceso(userId, 3);
+
+        return reporteRepo.findById(idReporte).get();
     }
 
 }

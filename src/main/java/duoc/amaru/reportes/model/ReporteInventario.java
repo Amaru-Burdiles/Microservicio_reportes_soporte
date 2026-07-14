@@ -1,6 +1,7 @@
 package duoc.amaru.reportes.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -20,7 +21,7 @@ public class ReporteInventario extends Reporte {
     private int totalProductos;
 
     @Column(name = "prod_id_stock_bajo")
-    private List<Long> prodBajoStock;
+    private List<Long> prodBajoStock = new ArrayList<>();
 
     public ReporteInventario(String tipo, LocalDateTime fecha, Long idEmp, String formato, String periodo, int totalProds, List<Long> prodBajoStock) {
         super(null, tipo, fecha, idEmp, formato, periodo);
