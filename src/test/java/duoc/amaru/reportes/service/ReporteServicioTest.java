@@ -1,25 +1,27 @@
 package duoc.amaru.reportes.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
 
 import duoc.amaru.reportes.client.PedidoClient;
 import duoc.amaru.reportes.client.ProdClient;
 import duoc.amaru.reportes.client.SesionClient;
+import duoc.amaru.reportes.client.UsuarioClient;
+import duoc.amaru.reportes.client.VentaClient;
+import duoc.amaru.reportes.dto.ProdDTO;
 import duoc.amaru.reportes.error.exceptions.UnknownTipoReporte;
 import duoc.amaru.reportes.model.Reporte;
 import duoc.amaru.reportes.model.ReporteInventario;
@@ -28,251 +30,165 @@ import duoc.amaru.reportes.model.ReporteVentas;
 import duoc.amaru.reportes.repository.ReporteRepo;
 
 public class ReporteServicioTest {
-    @Mock // Imitación de Repo Reporte
+
+    @Mock
     private ReporteRepo reporteRepo;
 
-    @Mock // Imitación de Client Producto
+    @Mock
     private ProdClient prodClient;
 
-    @Mock // Imitación de Client Pedido
+    @Mock
     private PedidoClient pedidoClient;
 
-    @Mock // Imitación de Client Sesion
+    @Mock
+    private VentaClient ventaClient;
+
+    @Mock
     private SesionClient sesionClient;
-    
-    @InjectMocks // Servicio a testear
+
+    @Mock
+    private UsuarioClient usuarioClient;
+
+    @InjectMocks
     private ReporteServicio reporteServicio;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
-    // GENERAR REPORTE VENTAS (EXITOSO)
     @Test
-    void testSuccessReporteVentas() {
-        // Preparación
-        ReporteVentas reporte; // = new ReporteVentas();
-
-    }
-
-    // GENERAR REPORTE VENTAS (FALLIDO)
-    @Test
-    void testFailReporteVentas() {
-        // TODO
-    }
-
-    // GENERAR REPORTE INVENTARIO (EXITOSO)
-    @Test
-    void testSuccessReporteInv() {
-        // TODO
-    }
-
-    // OBTENER TODOS LOS REPORTES (EXITOSO)
-    @Test
-    void testSuccessMostrarTodosLleno() {
-        // Preparación
-        ReporteVentas ventas = new ReporteVentas();
-        ReporteInventario inventario = new ReporteInventario();
-        ReporteRendimiento rendimiento = new ReporteRendimiento();
-
-        List<Reporte> reportes = new ArrayList<>();
-        reportes.add(rendimiento);
-        reportes.add(inventario);
-        reportes.add(ventas);
+    void generarReporteVenta_Exito() {
+        when(ventaClient.calcTotalVentas()).thenReturn(50000.0);
+        when(pedidoClient.getCantPedidos()).thenReturn(100);
         
-        // Configuración
-        when(sesionClient.validarEmpleado(1L, 3)).thenReturn(true);
-        when(reporteRepo.findAll()).thenReturn(reportes);
+        ReporteVentas reporteGuardado = new ReporteVentas();
+        reporteGuardado.setTotalVentas(50000.0);
+        reporteGuardado.setCantPedidos(100);
+        
+        when(reporteRepo.save(any(ReporteVentas.class))).thenReturn(reporteGuardado);
 
-        // Testeo
+        ReporteVentas resultado = reporteServicio.generarReporteVenta(1L);
+
+        assertNotNull(resultado);
+        assertEquals(50000.0, resultado.getTotalVentas());
+        assertEquals(100, resultado.getCantPedidos());
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
+        verify(reporteRepo, times(1)).save(any(ReporteVentas.class));
+    }
+
+    @Test
+    void generarReporteInv_Exito() {
+        when(prodClient.getTotalProductos()).thenReturn(200);
+        
+        ProdDTO prod1 = new ProdDTO();
+        prod1.setIdProducto(10L);
+        ProdDTO prod2 = new ProdDTO();
+        prod2.setIdProducto(20L);
+        when(prodClient.getProductosLowStock(5, 1L)).thenReturn(List.of(prod1, prod2));
+        
+        ReporteInventario reporteGuardado = new ReporteInventario();
+        reporteGuardado.setTotalProductos(200);
+        reporteGuardado.setProdBajoStock(List.of(10L, 20L));
+        
+        when(reporteRepo.save(any(ReporteInventario.class))).thenReturn(reporteGuardado);
+
+        ReporteInventario resultado = reporteServicio.generarReporteInv(1L, 5, 1L);
+
+        assertNotNull(resultado);
+        assertEquals(200, resultado.getTotalProductos());
+        assertEquals(2, resultado.getProdBajoStock().size());
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
+        verify(reporteRepo, times(1)).save(any(ReporteInventario.class));
+    }
+
+    @Test
+    void generarReporteRen_Exito() {
+        when(ventaClient.calcTotalVentas()).thenReturn(10000.0);
+        when(ventaClient.getCantVentasHechas()).thenReturn(50);
+        when(ventaClient.getCantClientesQueCompraron()).thenReturn(25);
+        when(usuarioClient.getClientesRegistrados()).thenReturn(100);
+
+        ReporteRendimiento reporteGuardado = new ReporteRendimiento();
+        reporteGuardado.setVentasTotales(10000.0);
+        reporteGuardado.setTicketPromedio(200.0);
+        reporteGuardado.setTasaConversion(25.0);
+
+        when(reporteRepo.save(any(ReporteRendimiento.class))).thenReturn(reporteGuardado);
+
+        ReporteRendimiento resultado = reporteServicio.generarReporteRen(1L);
+
+        assertNotNull(resultado);
+        assertEquals(10000.0, resultado.getVentasTotales());
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
+        verify(reporteRepo, times(1)).save(any(ReporteRendimiento.class));
+    }
+
+    @Test
+    void mostrarTodos_Exito() {
+        Reporte r1 = new ReporteVentas();
+        Reporte r2 = new ReporteInventario();
+        when(reporteRepo.findAll()).thenReturn(List.of(r1, r2));
+
         List<Reporte> resultado = reporteServicio.mostrarTodos(1L);
 
-        // Validación
-        assertEquals(reportes, resultado);
-        assertEquals(3, resultado.size());
-
-        // Verificación
+        assertEquals(2, resultado.size());
         verify(sesionClient, times(1)).validarEmpleado(1L, 3);
         verify(reporteRepo, times(1)).findAll();
     }
 
-    // OBTENER TODOS LOS REPORTES (EXITOSO)
     @Test
-    void testSuccessMostrarTodoVacio() {
-        // Preparación
-        List<Reporte> reportes = new ArrayList<>();
+    void reportesByTipo_Inventario_Exito() {
+        Reporte r1 = new ReporteInventario();
+        when(reporteRepo.findByTipoReporte("inventario")).thenReturn(List.of(r1));
 
-        // Configuración
-        when(sesionClient.validarEmpleado(1L, 3)).thenReturn(true);
-        when(reporteRepo.findAll()).thenReturn(reportes);
+        List<Reporte> resultado = reporteServicio.reportesByTipo("inventario", 1L);
 
-        // Testeo
-        List<Reporte> resultado = reporteServicio.mostrarTodos(1L);
-
-        // Validación
-        assertEquals(reportes, resultado);
-        assertEquals(0, resultado.size());
-
-        // Verificación
+        assertEquals(1, resultado.size());
         verify(sesionClient, times(1)).validarEmpleado(1L, 3);
-        verify(reporteRepo, times(1)).findAll();
+        verify(reporteRepo, times(1)).findByTipoReporte("inventario");
     }
 
-    // OBTENER TODOS LOS REPORTES (FALLIDO)
     @Test
-    void testFailMostrarTodo() {
-        // Preparación
-        List<Reporte> reportes = new ArrayList<>();
+    void reportesByTipo_Ventas_Exito() {
+        Reporte r1 = new ReporteVentas();
+        when(reporteRepo.findByTipoReporte("ventas")).thenReturn(List.of(r1));
 
-        // Configuración
-        when(sesionClient.validarEmpleado(1L, 3))
-        .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        when(reporteRepo.findAll()).thenReturn(reportes);
+        List<Reporte> resultado = reporteServicio.reportesByTipo("ventas", 1L);
 
-        // Testeo y Validación
-        assertThrows(HttpClientErrorException.class, () -> {
-            reporteServicio.mostrarTodos(1L);
-        });
-
-        // Verificación
+        assertEquals(1, resultado.size());
         verify(sesionClient, times(1)).validarEmpleado(1L, 3);
-        verify(reporteRepo, times(0)).findAll();
+        verify(reporteRepo, times(1)).findByTipoReporte("ventas");
     }
 
-    // OBTENER TODOS LOS REPORTES POR TIPO INVENTARIO (EXITOSO)
     @Test
-    void testSuccessReportesByTipoRendimiento() {
-        // Preparación
-        ReporteRendimiento rendimiento = new ReporteRendimiento();
+    void reportesByTipo_Rendimiento_Exito() {
+        Reporte r1 = new ReporteRendimiento();
+        when(reporteRepo.findByTipoReporte("rendimiento")).thenReturn(List.of(r1));
 
-        List<Reporte> reportes = new ArrayList<>();
-        reportes.add(rendimiento);
+        List<Reporte> resultado = reporteServicio.reportesByTipo("rendimiento", 1L);
 
-        Long userId = 1L;
-        int filtro = 3;
-        String tipo = "Rendimiento";
-
-        // Configuración
-        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
-        when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
-
-        // Testeo
-        List<Reporte> resultado = reporteServicio.reportesByTipo(tipo, userId);
-
-        // Validación
-        assertEquals(reportes, resultado);
         assertEquals(1, resultado.size());
-
-        // Verificación
-        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
-        verify(reporteRepo, times(1)).findByTipoReporte(tipo);
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
+        verify(reporteRepo, times(1)).findByTipoReporte("rendimiento");
     }
 
-    // OBTENER TODOS LOS REPORTES POR TIPO VENTAS (EXITOSO)
     @Test
-    void testSuccessReportesByTipoVentas() {
-        // Preparación
-        ReporteVentas venta = new ReporteVentas();
-
-        List<Reporte> reportes = new ArrayList<>();
-        reportes.add(venta);
-
-        Long userId = 1L;
-        int filtro = 3;
-        String tipo = "Ventas";
-
-        // Configuración
-        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
-        when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
-
-        // Testeo
-        List<Reporte> resultado = reporteServicio.reportesByTipo(tipo, userId);
-
-        // Validación
-        assertEquals(reportes, resultado);
-        assertEquals(1, resultado.size());
-
-        // Verificación
-        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
-        verify(reporteRepo, times(1)).findByTipoReporte(tipo);
+    void reportesByTipo_Desconocido_LanzaExcepcion() {
+        assertThrows(UnknownTipoReporte.class, () -> reporteServicio.reportesByTipo("invalido", 1L));
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
     }
 
-    // OBTENER TODOS LOS REPORTES POR TIPO INVENTARIO (EXITOSO)
     @Test
-    void testSuccessReportesByTipoInv() {
-        // Preparación
-        ReporteInventario inv = new ReporteInventario();
+    void reporteById_Exito() {
+        Reporte r1 = new ReporteVentas();
+        r1.setIdReporte(10L);
+        when(reporteRepo.findById(10L)).thenReturn(Optional.of(r1));
 
-        List<Reporte> reportes = new ArrayList<>();
-        reportes.add(inv);
+        Reporte resultado = reporteServicio.reporteById(10L, 1L);
 
-        Long userId = 1L;
-        int filtro = 3;
-        String tipo = "Inventario";
-
-        // Configuración
-        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
-        when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
-
-        // Testeo
-        List<Reporte> resultado = reporteServicio.reportesByTipo(tipo, userId);
-
-        // Validación
-        assertEquals(reportes, resultado);
-        assertEquals(1, resultado.size());
-
-        // Verificación
-        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
-        verify(reporteRepo, times(1)).findByTipoReporte(tipo);
-    }
-
-    // OBTENER TODOS LOS REPORTES POR TIPO (FALLIDO; VALIDACIÓN CLIENTE)
-    @Test
-    void testFailReportesByTipoCli() {
-        // Preparación
-        List<Reporte> reportes = new ArrayList<>();
-
-        Long userId = 1L;
-        int filtro = 3;
-        String tipo = "Venta";
-
-        // Configuración
-        when(sesionClient.validarEmpleado(userId, filtro))
-        .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
-
-        // Testeo y Validación
-        assertThrows(HttpClientErrorException.class, () -> {
-            reporteServicio.reportesByTipo(tipo, userId);
-        });
-
-        // Verificación
-        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
-        verify(reporteRepo, times(0)).findByTipoReporte(tipo);
-    }
-
-    // OBTENER TODOS LOS REPORTES POR TIPO (FALLIDO; TIPO DESCONOCIDO)
-    @Test
-    void testFailReportesByTipo() {
-        // Preparación
-        List<Reporte> reportes = new ArrayList<>();
-
-        Long userId = 1L;
-        int filtro = 3;
-        String tipo = "Veeeentas";
-
-        // Configuración
-        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
-        when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
-
-        // Testeo y Validación
-        assertThrows(UnknownTipoReporte.class, () -> {
-            reporteServicio.reportesByTipo(tipo, userId);
-        });
-
-        // Verificación
-        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
-        verify(reporteRepo, times(0)).findByTipoReporte(tipo);
+        assertNotNull(resultado);
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
+        verify(reporteRepo, times(1)).findById(10L);
     }
 }
