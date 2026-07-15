@@ -115,7 +115,7 @@ public class SolicitudServicioTest {
     void getSolicitud_EsEmpleado() {
         Solicitud s = new Solicitud();
         when(solicitudRepo.findById(10L)).thenReturn(Optional.of(s));
-        when(sesionClient.validarEmpleado(10L, 1)).thenReturn(true);
+        when(sesionClient.validarEmpleado(10L, 2)).thenReturn(true);
 
         Solicitud resultado = solicitudServicio.getSolicitud(1L, 10L);
 
@@ -149,7 +149,7 @@ public class SolicitudServicioTest {
         List<Solicitud> resultado = solicitudServicio.getReclamosByEstado(1L, "INVALIDO");
 
         assertNull(resultado);
-        verify(sesionClient, times(1)).validarEmpleado(1L, 1);
+        verify(sesionClient, times(1)).validarEmpleado(1L, 2);
     }
 
     @Test
