@@ -87,7 +87,7 @@ public class SolicitudServicio {
             return null;
 
         // Validar usuario es empleado y tiene permisos suficientes
-        if (sesionClient.validarEmpleado(idSoli, 1))
+        if (sesionClient.validarEmpleado(idSoli, 2))
             return solicitud;
 
         // Validar que userId es dueño de la solicitud
@@ -100,7 +100,7 @@ public class SolicitudServicio {
     // FILTRAR RECLAMOS POR ESTADO [reclamo]
     public List<Solicitud> getReclamosByEstado(Long exeId, String estado) {
         // Validar empleado
-        sesionClient.validarEmpleado(exeId, 1);
+        sesionClient.validarEmpleado(exeId, 2);
 
         if (!estadosSolicitud.contains(estado.toLowerCase()))
             return null;
@@ -111,7 +111,7 @@ public class SolicitudServicio {
     // MARCAR SOLICITUD COMO EN REVISION
     public boolean marcarEnRevision(Long userId, Long idSoli) {
         // Validar empleado
-        sesionClient.validarEmpleado(idSoli, 1);
+        sesionClient.validarEmpleado(idSoli, 2);
 
         // Validar la solicitud existe
         Solicitud solicitud = solicitudRepo.findById(idSoli).orElse(null);
@@ -132,7 +132,7 @@ public class SolicitudServicio {
     // MARCAR SOLICITUD COMO RESUELTA
     public boolean marcarResulta(Long userId, Long idSoli) {
         // Validar empleado
-        sesionClient.validarEmpleado(idSoli, 1);
+        sesionClient.validarEmpleado(idSoli, 2);
 
         // Validar la solicitud existe
         Solicitud solicitud = solicitudRepo.findById(idSoli).orElse(null);
@@ -153,7 +153,7 @@ public class SolicitudServicio {
     // CERRAR SOLICITUD
     public boolean cerrarSolicictud(Long userId, Long idSoli) {
         // Validar empleado
-        sesionClient.validarEmpleado(idSoli, 1);
+        sesionClient.validarEmpleado(idSoli, 2);
 
         // Validar la solicitud existe
         Solicitud solicitud = solicitudRepo.findById(idSoli).orElse(null);
