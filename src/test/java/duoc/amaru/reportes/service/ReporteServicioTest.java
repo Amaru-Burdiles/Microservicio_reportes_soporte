@@ -52,20 +52,20 @@ public class ReporteServicioTest {
     @Test
     void testSuccessReporteVentas() {
         // Preparación
-        ReporteVentas reporte; // = new ReporteVentas(super(), arg, arg);
+        ReporteVentas reporte; // = new ReporteVentas();
 
     }
 
     // GENERAR REPORTE VENTAS (FALLIDO)
     @Test
     void testFailReporteVentas() {
-        // TODO: Fix super() call on ReporteVentas
+        // TODO
     }
 
     // GENERAR REPORTE INVENTARIO (EXITOSO)
     @Test
     void testSuccessReporteInv() {
-        // TODO: Fix super() call on ReporteVentas
+        // TODO
     }
 
     // OBTENER TODOS LOS REPORTES (EXITOSO)
@@ -82,7 +82,7 @@ public class ReporteServicioTest {
         reportes.add(ventas);
         
         // Configuración
-        when(sesionClient.validarAceso(1L, 3)).thenReturn(true);
+        when(sesionClient.validarEmpleado(1L, 3)).thenReturn(true);
         when(reporteRepo.findAll()).thenReturn(reportes);
 
         // Testeo
@@ -93,7 +93,7 @@ public class ReporteServicioTest {
         assertEquals(3, resultado.size());
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(1L, 3);
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
         verify(reporteRepo, times(1)).findAll();
     }
 
@@ -104,7 +104,7 @@ public class ReporteServicioTest {
         List<Reporte> reportes = new ArrayList<>();
 
         // Configuración
-        when(sesionClient.validarAceso(1L, 3)).thenReturn(true);
+        when(sesionClient.validarEmpleado(1L, 3)).thenReturn(true);
         when(reporteRepo.findAll()).thenReturn(reportes);
 
         // Testeo
@@ -115,7 +115,7 @@ public class ReporteServicioTest {
         assertEquals(0, resultado.size());
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(1L, 3);
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
         verify(reporteRepo, times(1)).findAll();
     }
 
@@ -126,7 +126,7 @@ public class ReporteServicioTest {
         List<Reporte> reportes = new ArrayList<>();
 
         // Configuración
-        when(sesionClient.validarAceso(1L, 3))
+        when(sesionClient.validarEmpleado(1L, 3))
         .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         when(reporteRepo.findAll()).thenReturn(reportes);
 
@@ -136,7 +136,7 @@ public class ReporteServicioTest {
         });
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(1L, 3);
+        verify(sesionClient, times(1)).validarEmpleado(1L, 3);
         verify(reporteRepo, times(0)).findAll();
     }
 
@@ -154,7 +154,7 @@ public class ReporteServicioTest {
         String tipo = "Rendimiento";
 
         // Configuración
-        when(sesionClient.validarAceso(userId, filtro)).thenReturn(true);
+        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
         when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
 
         // Testeo
@@ -165,7 +165,7 @@ public class ReporteServicioTest {
         assertEquals(1, resultado.size());
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(userId, filtro);
+        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
         verify(reporteRepo, times(1)).findByTipoReporte(tipo);
     }
 
@@ -183,7 +183,7 @@ public class ReporteServicioTest {
         String tipo = "Ventas";
 
         // Configuración
-        when(sesionClient.validarAceso(userId, filtro)).thenReturn(true);
+        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
         when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
 
         // Testeo
@@ -194,7 +194,7 @@ public class ReporteServicioTest {
         assertEquals(1, resultado.size());
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(userId, filtro);
+        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
         verify(reporteRepo, times(1)).findByTipoReporte(tipo);
     }
 
@@ -212,7 +212,7 @@ public class ReporteServicioTest {
         String tipo = "Inventario";
 
         // Configuración
-        when(sesionClient.validarAceso(userId, filtro)).thenReturn(true);
+        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
         when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
 
         // Testeo
@@ -223,7 +223,7 @@ public class ReporteServicioTest {
         assertEquals(1, resultado.size());
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(userId, filtro);
+        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
         verify(reporteRepo, times(1)).findByTipoReporte(tipo);
     }
 
@@ -238,7 +238,7 @@ public class ReporteServicioTest {
         String tipo = "Venta";
 
         // Configuración
-        when(sesionClient.validarAceso(userId, filtro))
+        when(sesionClient.validarEmpleado(userId, filtro))
         .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
 
@@ -248,7 +248,7 @@ public class ReporteServicioTest {
         });
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(userId, filtro);
+        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
         verify(reporteRepo, times(0)).findByTipoReporte(tipo);
     }
 
@@ -263,7 +263,7 @@ public class ReporteServicioTest {
         String tipo = "Veeeentas";
 
         // Configuración
-        when(sesionClient.validarAceso(userId, filtro)).thenReturn(true);
+        when(sesionClient.validarEmpleado(userId, filtro)).thenReturn(true);
         when(reporteRepo.findByTipoReporte(tipo)).thenReturn(reportes);
 
         // Testeo y Validación
@@ -272,7 +272,7 @@ public class ReporteServicioTest {
         });
 
         // Verificación
-        verify(sesionClient, times(1)).validarAceso(userId, filtro);
+        verify(sesionClient, times(1)).validarEmpleado(userId, filtro);
         verify(reporteRepo, times(0)).findByTipoReporte(tipo);
     }
 }

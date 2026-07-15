@@ -89,4 +89,9 @@ public class VentaClient {
 
         return userIds.size();
     }
+
+    /* TODO: Para futuras versiones, crear un metodo en el microservicio Ventas
+       que filtre y devuelva todas las ventas con el estado dado, de ese modo se
+       puede simplificar la lógica de este lado y reducir el número de peticiones
+       enviadas. */
 }

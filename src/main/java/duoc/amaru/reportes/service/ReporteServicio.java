@@ -43,7 +43,7 @@ public class ReporteServicio {
     // GENERAR REPORTE VENTAS
     public ReporteVentas generarReporteVenta(Long userId) {
         // Validar usuario ejecutor
-        sesionClient.validarAceso(userId, 3);
+        sesionClient.validarEmpleado(userId, 3);
 
         // Rellenar especificaciones de reporte
         ReporteVentas ventas = new ReporteVentas();
@@ -66,7 +66,7 @@ public class ReporteServicio {
     // GENERAR REPORTE INVENTARIO
     public ReporteInventario generarReporteInv(Long userId, int umbral, Long invId) {
         // Validar usuario ejecutor
-        sesionClient.validarAceso(userId, 3);
+        sesionClient.validarEmpleado(userId, 3);
 
         // Rellenar especificaciones de reporte
         ReporteInventario inv = new ReporteInventario();
@@ -93,7 +93,7 @@ public class ReporteServicio {
     // GENERAR REPORTE RENDIMIENTO
     public ReporteRendimiento generarReporteRen(Long userId) {
         // Validar usuario ejecutor
-        sesionClient.validarAceso(userId, 3);
+        sesionClient.validarEmpleado(userId, 3);
 
         // Rellenar especificaciones de reporte
         ReporteRendimiento ren = new ReporteRendimiento();
@@ -116,10 +116,10 @@ public class ReporteServicio {
         ren.setTasaConversion(clientesQueCompraron / clientesRegistrados * 100);
 
         // Margen Bruto
-        /* TODO: Crear una sección microservicio Inventario encargada de llevar
-           el registro del Costos de bienes vendidos (COGS). Mandar una petición
-           por este valor y utilizarlo para el calculo:
-           Ventas Totales - COGS / Ventas Totales
+        /* TODO: Para futuras versiones, crear una sección en microservicio Inventario
+           encargada de llevar el registro de los Costos de bienes vendidos (COGS).
+           Mandar una petición por este valor desde Client y utilizarlo para el calculo:
+           Ventas Totales - COGS / Ventas Totales = Margen Bruto
         */
         return reporteRepo.save(ren);
     }
@@ -127,7 +127,7 @@ public class ReporteServicio {
     // OBTENER TODOS LOS REPORTES
     public List<Reporte> mostrarTodos(Long userId) {
         // Validar usuario ejecutor
-        sesionClient.validarAceso(userId, 3);
+        sesionClient.validarEmpleado(userId, 3);
 
         return reporteRepo.findAll();
     }
@@ -135,7 +135,7 @@ public class ReporteServicio {
     // OBTENER REPORTES POR TIPO
     public List<Reporte> reportesByTipo(String tipo, Long userId) {
         // Validar usuario ejecutor
-        sesionClient.validarAceso(userId, 3);
+        sesionClient.validarEmpleado(userId, 3);
 
         if (!tipo.equalsIgnoreCase("inventario")
             && !tipo.equalsIgnoreCase("ventas")
@@ -149,7 +149,7 @@ public class ReporteServicio {
     // OBTENER REPORTE POR ID
     public Reporte reporteById(Long idReporte, Long userId) {
         // Validar usuario ejecutor
-        sesionClient.validarAceso(userId, 3);
+        sesionClient.validarEmpleado(userId, 3);
 
         return reporteRepo.findById(idReporte).get();
     }

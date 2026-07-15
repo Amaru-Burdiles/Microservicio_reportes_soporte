@@ -15,6 +15,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import duoc.amaru.reportes.error.exceptions.ProdNoExiste;
 import duoc.amaru.reportes.error.exceptions.ReviewYaExiste;
 import duoc.amaru.reportes.error.exceptions.UnknownTipoReporte;
+import duoc.amaru.reportes.error.exceptions.OffLimitsException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -44,18 +45,24 @@ public class GlobalExceptionHandler {
     // Excepción de reporte servicio -> tipo de reporte desconocido
     @ExceptionHandler(UnknownTipoReporte.class)
     public ResponseEntity<String> reporteServicioEx(UnknownTipoReporte ex) {
-        return ResponseEntity.badRequest().body("Tipo de reporte desconocido");
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     // Excepción de reseña servicio -> Id de producto no existe
     @ExceptionHandler(ProdNoExiste.class)
     public ResponseEntity<String> reviewServicioEx(ProdNoExiste ex) {
-        return ResponseEntity.badRequest().body("Producto no encontrado");
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     // Excepción de reseña servicio -> Reseña duplicada por producto
     @ExceptionHandler(ReviewYaExiste.class)
     public ResponseEntity<String> reviewServicioEx(ReviewYaExiste ex) {
-        return ResponseEntity.badRequest().body("Ya escribiste una reseña para este producto");
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    // Excepción de solicitud servicio -> Sin permisos suficientes para ver la solicitud
+    @ExceptionHandler(OffLimitsException.class)
+    public ResponseEntity<String> solicitudServicioEx(OffLimitsException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }
